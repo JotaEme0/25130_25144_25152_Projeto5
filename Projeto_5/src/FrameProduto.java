@@ -20,12 +20,13 @@ public class FrameProduto extends JFrame {
     public FrameProduto() throws SQLException {
         setTitle("Manutenção de Produtos - Da Roça");
         setSize(1000, 400);
-        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // fecha só o frame, não o app todo
+        setLocationRelativeTo(null); // centraliza
 
+        // ===== TOOLBAR =====
         tbBotoes = new JToolBar();
         tbBotoes.setLayout(new FlowLayout());
 
-        // Criação dos botões (pode reaproveitar o código do FrameDepto)
         btnInicio = new JButton("Início");
         btnAnterior = new JButton("Anterior");
         btnProximo = new JButton("Próximo");
@@ -49,9 +50,11 @@ public class FrameProduto extends JFrame {
         tbBotoes.add(btnCancelar);
         tbBotoes.setRollover(true);
 
+        // ===== PAINÉIS =====
         JPanel pnlGrade = new JPanel();
         JPanel pnlCampos = new JPanel();
         JPanel pnlMensagem = new JPanel();
+
         JLabel lbMensagem = new JLabel("Mensagem:");
         pnlMensagem.add(lbMensagem);
         pnlMensagem.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -63,14 +66,16 @@ public class FrameProduto extends JFrame {
         cntForm.add(pnlCampos, BorderLayout.CENTER);
         cntForm.add(pnlMensagem, BorderLayout.SOUTH);
 
+        // ===== TABELA =====
         Object[][] dadosProduto = {{0, "", "", "", "", "", ""}};
         String[] colunas = {"ID", "Nome", "Preço", "Descrição", "Qtd", "Imagem", "Categoria"};
-        JTable tabProduto = new JTable(dadosProduto, colunas);
+        tabProduto = new JTable(dadosProduto, colunas); // <-- corrigido (sem redeclarar)
         JScrollPane barraRolagem = new JScrollPane(tabProduto);
         pnlGrade.add(barraRolagem);
 
-        // 7 linhas e 2 colunas
-        pnlCampos.setLayout(new GridLayout(7, 2));
+        // ===== CAMPOS =====
+        pnlCampos.setLayout(new GridLayout(7, 2, 5, 5));
+
         txtIdProduto = new JTextField();
         txtNomeProduto = new JTextField();
         txtPreco = new JTextField();
@@ -94,35 +99,71 @@ public class FrameProduto extends JFrame {
         pnlCampos.add(new JLabel("ID Categoria:"));
         pnlCampos.add(txtIdCategoria);
 
+        // ===== CONEXÃO =====
         try {
             conexaoDados = ConectaBD.getConnection();
             preencherDados();
-            if (dadosDoSelect != null)
+            if (dadosDoSelect != null) {
                 exibirRegistro();
+            }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            JOptionPane.showMessageDialog(this, "Erro ao conectar ao banco: " + e.getMessage());
         }
 
-        // Eventos dos botões (mesma lógica do FrameDepto)
-        btnIncluir.addActionListener(e -> {
-            String sql = "INSERT INTO DaRoca.Produto (nomeProduto, preco, descricao, QtdeProduto, ImagemProduto, idCategoria) VALUES (?, ?, ?, ?, ?, ?)";
-            try {
-                PreparedStatement comandoSQL = conexaoDados.prepareStatement(sql);
-                comandoSQL.setString(1, txtNomeProduto.getText());
-                comandoSQL.setBigDecimal(2, new java.math.BigDecimal(txtPreco.getText()));
-                comandoSQL.setString(3, txtDescricao.getText());
-                comandoSQL.setInt(4, Integer.parseInt(txtQtdeProduto.getText()));
-                comandoSQL.setString(5, txtImagemProduto.getText());
-                comandoSQL.setInt(6, Integer.parseInt(txtIdCategoria.getText()));
-                comandoSQL.executeUpdate();
-                JOptionPane.showMessageDialog(null, "Produto incluído com sucesso!");
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(null, ex.getMessage());
-            }
-        });
+        // ===== BOTÕES =====
+        btnIncluir.addActionListener(e -> incluirProduto());
+        btnProximo.addActionListener(e -> proximoRegistro());
+        btnAnterior.addActionListener(e -> registroAnterior());
+        btnInicio.addActionListener(e -> primeiroRegistro());
+        btnFinal.addActionListener(e -> ultimoRegistro());
+        btnExcluir.addActionListener(e -> excluirProduto());
     }
 
-    private static void preencherDados() {
+    // ====== MÉTODOS AUXILIARES ======
+
+    private void incluirProduto() {
+        String sql = "INSERT INTO DaRoca.Produto (nomeProduto, preco, descricao, QtdeProduto, ImagemProduto, idCategoria) VALUES (?, ?, ?, ?, ?, ?)";
+        try {
+            PreparedStatement comandoSQL = conexaoDados.prepareStatement(sql);
+            comandoSQL.setString(1, txtNomeProduto.getText());
+            comandoSQL.setBigDecimal(2, new java.math.BigDecimal(txtPreco.getText()));
+            comandoSQL.setString(3, txtDescricao.getText());
+            comandoSQL.setInt(4, Integer.parseInt(txtQtdeProduto.getText()));
+            comandoSQL.setString(5, txtImagemProduto.getText());
+            comandoSQL.setInt(6, Integer.parseInt(txtIdCategoria.getText()));
+            comandoSQL.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Produto incluído com sucesso!");
+            preencherDados();
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Erro ao incluir produto: " + ex.getMessage());
+        }
+    }
+
+    private void excluirProduto() {
+        if (txtIdProduto.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Selecione um produto para excluir.");
+            return;
+        }
+
+        int resposta = JOptionPane.showConfirmDialog(this,
+                "Deseja realmente excluir o produto?",
+                "Confirmação", JOptionPane.YES_NO_OPTION);
+
+        if (resposta == JOptionPane.YES_OPTION) {
+            try {
+                String sql = "DELETE FROM DaRoca.Produto WHERE idProduto = ?";
+                PreparedStatement comandoSQL = conexaoDados.prepareStatement(sql);
+                comandoSQL.setInt(1, Integer.parseInt(txtIdProduto.getText()));
+                comandoSQL.executeUpdate();
+                JOptionPane.showMessageDialog(this, "Produto excluído com sucesso!");
+                preencherDados();
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, "Erro ao excluir produto: " + ex.getMessage());
+            }
+        }
+    }
+
+    private void preencherDados() {
         String sql = "SELECT * FROM DaRoca.Produto ORDER BY idProduto";
         try {
             Statement comandoSQL = conexaoDados.createStatement(
@@ -135,7 +176,7 @@ public class FrameProduto extends JFrame {
         }
     }
 
-    private static void exibirRegistro() throws SQLException {
+    private void exibirRegistro() throws SQLException {
         txtIdProduto.setText(dadosDoSelect.getString("idProduto"));
         txtNomeProduto.setText(dadosDoSelect.getString("nomeProduto"));
         txtPreco.setText(dadosDoSelect.getString("preco"));
@@ -145,24 +186,54 @@ public class FrameProduto extends JFrame {
         txtIdCategoria.setText(dadosDoSelect.getString("idCategoria"));
     }
 
+    private void proximoRegistro() {
+        try {
+            if (!dadosDoSelect.isLast()) {
+                dadosDoSelect.next();
+                exibirRegistro();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void registroAnterior() {
+        try {
+            if (!dadosDoSelect.isFirst()) {
+                dadosDoSelect.previous();
+                exibirRegistro();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void primeiroRegistro() {
+        try {
+            dadosDoSelect.first();
+            exibirRegistro();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void ultimoRegistro() {
+        try {
+            dadosDoSelect.last();
+            exibirRegistro();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ===== MAIN =====
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
                 FrameProduto form = new FrameProduto();
-                form.addWindowListener(new WindowAdapter() {
-                    public void windowClosing(WindowEvent e) {
-                        try {
-                            conexaoDados.close();
-                        } catch (SQLException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                        System.exit(0);
-                    }
-                });
-                form.pack();
                 form.setVisible(true);
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                JOptionPane.showMessageDialog(null, "Erro ao abrir tela: " + e.getMessage());
             }
         });
     }
