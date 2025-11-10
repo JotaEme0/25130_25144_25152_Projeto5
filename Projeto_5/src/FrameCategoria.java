@@ -67,16 +67,14 @@ public class FrameCategoria extends JFrame {
         cntForm.add(pnlGrade, BorderLayout.WEST);
         cntForm.add(pnlCampos, BorderLayout.CENTER);
         cntForm.add(pnlMensagem, BorderLayout.SOUTH);
-
-        // tabela gráfica com colunas (apenas para visualização inicial)
         Object[][] dadosCategoria = {{0, ""}};
+
         String[] colunas = {"ID", "Nome Categoria"};
         tabCategoria = new JTable(dadosCategoria, colunas);
         JScrollPane barraRolagem = new JScrollPane(tabCategoria);
         barraRolagem.setPreferredSize(new Dimension(300, 150));
         pnlGrade.add(barraRolagem);
 
-        // Campos: 2 linhas, 2 colunas
         pnlCampos.setLayout(new GridLayout(2, 2, 5, 5));
         txtIdCategoria = new JTextField();
         txtNomeCategoria = new JTextField();
@@ -86,7 +84,6 @@ public class FrameCategoria extends JFrame {
         pnlCampos.add(new JLabel("Nome Categoria:"));
         pnlCampos.add(txtNomeCategoria);
 
-        // Conexão e carregamento inicial
         try {
             conexaoDados = ConectaBD.getConnection();
             preencherDados();
@@ -96,7 +93,6 @@ public class FrameCategoria extends JFrame {
             JOptionPane.showMessageDialog(this, "Erro de conexão: " + e.getMessage());
         }
 
-        // --- Navegação ---
         btnInicio.addActionListener(e -> {
             try {
                 if (dadosDoSelect != null && dadosDoSelect.first()) exibirRegistro();
@@ -137,7 +133,6 @@ public class FrameCategoria extends JFrame {
             }
         });
 
-        // --- Incluir (INSERT) ---
         btnIncluir.addActionListener(e -> {
             String sql = "INSERT INTO DaRoca.Categoria (nomeCategoria) VALUES (?)";
             try (PreparedStatement ps = conexaoDados.prepareStatement(sql)) {
@@ -156,7 +151,7 @@ public class FrameCategoria extends JFrame {
             }
         });
 
-        // --- Atualizar (UPDATE) ---
+
         btnSalvar.addActionListener(e -> {
             String sql = "UPDATE DaRoca.Categoria SET nomeCategoria = ? WHERE idCategoria = ?";
             try (PreparedStatement ps = conexaoDados.prepareStatement(sql)) {
@@ -180,7 +175,7 @@ public class FrameCategoria extends JFrame {
             }
         });
 
-        // --- Excluir (DELETE) ---
+
         btnExcluir.addActionListener(e -> {
             String sql = "DELETE FROM DaRoca.Categoria WHERE idCategoria = ?";
             try (PreparedStatement ps = conexaoDados.prepareStatement(sql)) {
@@ -202,7 +197,7 @@ public class FrameCategoria extends JFrame {
             }
         });
 
-        // --- Buscar por ID ---
+
         btnBuscar.addActionListener(e -> {
             String sql = "SELECT * FROM DaRoca.Categoria WHERE idCategoria = ?";
             try (PreparedStatement ps = conexaoDados.prepareStatement(sql)) {
