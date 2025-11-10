@@ -16,14 +16,14 @@ public class FrameProduto extends JFrame {
             txtQtdeProduto, txtImagemProduto, txtIdCategoria;
 
     private static JTable tabProduto;
+    private boolean aBoolean;
 
     public FrameProduto() throws SQLException {
         setTitle("Manutenção de Produtos - Da Roça");
         setSize(1000, 400);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // fecha só o frame, não o app todo
-        setLocationRelativeTo(null); // centraliza
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLocationRelativeTo(null);
 
-        // ===== TOOLBAR =====
         tbBotoes = new JToolBar();
         tbBotoes.setLayout(new FlowLayout());
 
@@ -66,14 +66,12 @@ public class FrameProduto extends JFrame {
         cntForm.add(pnlCampos, BorderLayout.CENTER);
         cntForm.add(pnlMensagem, BorderLayout.SOUTH);
 
-        // ===== TABELA =====
-        Object[][] dadosProduto = {{0, "", "", "", "", "", ""}};
+        Object[][] dadosProduto = {{0 , "", 0, "", 0, "", 0}};
         String[] colunas = {"ID", "Nome", "Preço", "Descrição", "Qtd", "Imagem", "Categoria"};
         tabProduto = new JTable(dadosProduto, colunas); // <-- corrigido (sem redeclarar)
         JScrollPane barraRolagem = new JScrollPane(tabProduto);
         pnlGrade.add(barraRolagem);
 
-        // ===== CAMPOS =====
         pnlCampos.setLayout(new GridLayout(7, 2, 5, 5));
 
         txtIdProduto = new JTextField();
@@ -99,7 +97,6 @@ public class FrameProduto extends JFrame {
         pnlCampos.add(new JLabel("ID Categoria:"));
         pnlCampos.add(txtIdCategoria);
 
-        // ===== CONEXÃO =====
         try {
             conexaoDados = ConectaBD.getConnection();
             preencherDados();
@@ -110,16 +107,14 @@ public class FrameProduto extends JFrame {
             JOptionPane.showMessageDialog(this, "Erro ao conectar ao banco: " + e.getMessage());
         }
 
-        // ===== BOTÕES =====
         btnIncluir.addActionListener(e -> incluirProduto());
         btnProximo.addActionListener(e -> proximoRegistro());
         btnAnterior.addActionListener(e -> registroAnterior());
         btnInicio.addActionListener(e -> primeiroRegistro());
         btnFinal.addActionListener(e -> ultimoRegistro());
         btnExcluir.addActionListener(e -> excluirProduto());
+        btnBuscar.addActionListener(e -> preencherDados());
     }
-
-    // ====== MÉTODOS AUXILIARES ======
 
     private void incluirProduto() {
         String sql = "INSERT INTO DaRoca.Produto (nomeProduto, preco, descricao, QtdeProduto, ImagemProduto, idCategoria) VALUES (?, ?, ?, ?, ?, ?)";
@@ -166,6 +161,17 @@ public class FrameProduto extends JFrame {
     private void preencherDados() {
         String sql = "SELECT * FROM DaRoca.Produto ORDER BY idProduto";
         try {
+            for (int j = 0; j < 7; j++)
+                System.out.printf("%7d",j);
+            System.out.println();
+
+            for (int linha = 0; linha < 1; linha ++)
+            {
+                System.out.printf("%2d ",linha);
+                for (int coluna=0; coluna < 7; coluna++)
+                    System.out.printf("%7.1f", Object[linha][coluna]);
+                System.out.println();
+            }
             Statement comandoSQL = conexaoDados.createStatement(
                     ResultSet.TYPE_SCROLL_INSENSITIVE,
                     ResultSet.CONCUR_READ_ONLY);
@@ -226,7 +232,6 @@ public class FrameProduto extends JFrame {
         }
     }
 
-    // ===== MAIN =====
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {

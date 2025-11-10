@@ -33,11 +33,6 @@ public class FramePrincipal extends JFrame {
         pnlCentral.add(btnProdutos);
         add(pnlCentral, BorderLayout.CENTER);
 
-        JLabel lblRodape = new JLabel("Desenvolvido por Equipe Da Roça", SwingConstants.CENTER);
-        lblRodape.setFont(new Font("Arial", Font.ITALIC, 12));
-        lblRodape.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
-        add(lblRodape, BorderLayout.SOUTH);
-
         btnCategorias.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
